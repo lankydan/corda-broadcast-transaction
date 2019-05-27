@@ -160,6 +160,27 @@ class BroadcastTransactionFlowTest {
     }.withMessageContaining("The sender of the new message cannot have my identity")
   }
 
+  @Test
+  fun `BroadcastTransactionFlow can be called from inside another flow`() {
+    val future = partyA.startFlow(
+      SendMessageAndBroadcastFlow(
+        MessageState(
+          contents = "hi",
+          recipient = partyB.info.singleIdentity(),
+          sender = partyA.info.singleIdentity(),
+          linearId = UniqueIdentifier()
+        )
+      )
+    )
+    mockNetwork.runNetwork()
+    val stx = future.get()
+    val message = stx.coreTransaction.outputsOfType<MessageState>().single()
+    assertStateExists(partyA, message)
+    assertStateExists(partyB, message)
+    assertStateExists(partyC, message)
+    assertStateExists(partyD, message)
+  }
+
   private fun assertStateExists(node: StartedMockNode, message: MessageState) {
     node.transaction {
       val state = node.services.vaultService.queryBy<MessageState>().states.single().state.data

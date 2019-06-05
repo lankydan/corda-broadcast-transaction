@@ -130,7 +130,7 @@ class BroadcastTransactionFlowTest {
   // therefore they can decline the transaction inside of their responder flow
   // would prefer if I could 100% enforce in the contract
   @Test
-  fun `Broadcasted transaction cannot be spent by non participant parties`() {
+  fun `Broadcasted transaction states cannot be spent in a transaction created by non participant parties`() {
     val future = partyA.startFlow(
       SendMessageFlow(
         MessageState(
@@ -154,10 +154,72 @@ class BroadcastTransactionFlowTest {
 
     val messageStateAndRef = stx.coreTransaction.outRefsOfType<MessageState>().single()
     assertThatExceptionOfType(FlowException::class.java).isThrownBy {
-      val replyFuture = partyD.startFlow(ReplyToMessageFlow(messageStateAndRef))
+      val replyFuture = partyD.startFlow(ReplyToMessageFlow(messageStateAndRef, partyB.info.singleIdentity(), partyA.info.singleIdentity()))
       mockNetwork.runNetwork()
       replyFuture.getOrThrow()
     }.withMessageContaining("The sender of the new message cannot have my identity")
+  }
+
+  @Test
+  fun `Broadcasted transaction states cannot be sent to parties not included in the original transaction`() {
+    val future = partyA.startFlow(
+      SendMessageFlow(
+        MessageState(
+          contents = "hi",
+          recipient = partyB.info.singleIdentity(),
+          sender = partyA.info.singleIdentity(),
+          linearId = UniqueIdentifier()
+        )
+      )
+    )
+    mockNetwork.runNetwork()
+    val stx = future.get()
+
+    val broadcastFuture = partyA.startFlow(
+      BroadcastTransactionFlow(
+        stx, listOf(partyC.info.singleIdentity(), partyD.info.singleIdentity())
+      )
+    )
+    mockNetwork.runNetwork()
+    broadcastFuture.get()
+
+    val messageStateAndRef = stx.coreTransaction.outRefsOfType<MessageState>().single()
+    assertThatExceptionOfType(FlowException::class.java).isThrownBy {
+      val replyFuture = partyD.startFlow(ReplyToMessageFlow(messageStateAndRef, partyC.info.singleIdentity(), partyD.info.singleIdentity()))
+      mockNetwork.runNetwork()
+      replyFuture.getOrThrow()
+    }.withMessageContaining("Only the original message's recipient can reply to the message")
+  }
+
+  @Test
+  fun `Broadcasted transaction - sender cannot be mimicked`() {
+    val future = partyA.startFlow(
+      SendMessageFlow(
+        MessageState(
+          contents = "hi",
+          recipient = partyB.info.singleIdentity(),
+          sender = partyA.info.singleIdentity(),
+          linearId = UniqueIdentifier()
+        )
+      )
+    )
+    mockNetwork.runNetwork()
+    val stx = future.get()
+
+    val broadcastFuture = partyA.startFlow(
+      BroadcastTransactionFlow(
+        stx, listOf(partyC.info.singleIdentity(), partyD.info.singleIdentity())
+      )
+    )
+    mockNetwork.runNetwork()
+    broadcastFuture.get()
+
+    val messageStateAndRef = stx.coreTransaction.outRefsOfType<MessageState>().single()
+    assertThatExceptionOfType(FlowException::class.java).isThrownBy {
+      val replyFuture = partyD.startFlow(ReplyToMessageFlow(messageStateAndRef, partyB.info.singleIdentity(), partyA.info.singleIdentity()))
+      mockNetwork.runNetwork()
+      replyFuture.getOrThrow()
+    }.withMessageContaining("The sender of the reply must must be the party creating this transaction")
   }
 
   @Test

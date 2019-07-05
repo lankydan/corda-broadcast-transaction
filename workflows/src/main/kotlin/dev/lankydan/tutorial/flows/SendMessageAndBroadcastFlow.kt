@@ -25,7 +25,10 @@ class SendMessageAndBroadcastFlow(private val message: MessageState) :
     return subFlow(FinalityFlow(stx, sessions)).also {
       logger.info("Finished sending message ${message.contents}")
       val broadcastToParties =
-        serviceHub.networkMapCache.allNodes.map { node -> node.legalIdentities.first() } - message.recipient - message.sender
+        serviceHub.networkMapCache.allNodes.map { node -> node.legalIdentities.first() }
+          .minus(serviceHub.networkMapCache.notaryIdentities)
+          .minus(message.recipient)
+          .minus(message.sender)
       subFlow(
         BroadcastTransactionFlow(
           it, broadcastToParties

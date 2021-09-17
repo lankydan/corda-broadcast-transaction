@@ -1,8 +1,8 @@
-package dev.lankydan.tutorial.server.web
+package net.corda.r3.exporter.web
 
 import dev.lankydan.tutorial.flows.SendMessageFlow
-import dev.lankydan.tutorial.server.NodeRPCConnection
-import dev.lankydan.tutorial.server.dto.Message
+import net.corda.r3.exporter.NodeRPCConnection
+import net.corda.r3.exporter.dto.Message
 import dev.lankydan.tutorial.states.MessageState
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.identity.CordaX500Name
@@ -23,13 +23,13 @@ class MessageController(rpc: NodeRPCConnection) {
   private val proxy = rpc.proxy
 
   @PostMapping
-  fun post(@RequestBody message: Message): ResponseEntity<MessageState> {
+  fun post(@RequestBody message: Message): ResponseEntity<String> {
     return UUID.randomUUID().let {
       ResponseEntity.created(URI("/messages/$it")).body(
-        proxy.startFlow(
+        (proxy.startFlow(
           ::SendMessageFlow,
           state(message, it)
-        ).returnValue.getOrThrow().coreTransaction.outputStates.first() as MessageState
+        ).returnValue.getOrThrow().coreTransaction.outputStates.first() as MessageState).contents
       )
     }
   }

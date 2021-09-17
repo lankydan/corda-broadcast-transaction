@@ -1,4 +1,4 @@
-package dev.lankydan.tutorial.server
+package net.corda.r3.exporter
 
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication

@@ -11,6 +11,8 @@ data class MessageState(
   val sender: Party,
   val recipient: Party,
   val contents: String,
-  override val linearId: UniqueIdentifier,
-  override val participants: List<Party> = listOf(sender, recipient)
-) : LinearState
+  override val linearId: UniqueIdentifier/*,
+  override val participants: List<Party> = listOf(sender, recipient)*/
+) : LinearState {
+  override val participants: List<Party> get() = listOf(sender, recipient)
+}

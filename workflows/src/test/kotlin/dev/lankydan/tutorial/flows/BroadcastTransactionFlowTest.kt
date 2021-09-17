@@ -5,23 +5,17 @@ import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.FlowException
 import net.corda.core.identity.CordaX500Name
 import net.corda.core.node.services.queryBy
-import net.corda.core.toFuture
 import net.corda.core.utilities.getOrThrow
 import net.corda.testing.core.singleIdentity
 import net.corda.testing.node.MockNetwork
 import net.corda.testing.node.MockNetworkNotarySpec
 import net.corda.testing.node.MockNodeParameters
 import net.corda.testing.node.StartedMockNode
-import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import java.time.Duration
-import java.util.concurrent.ExecutionException
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 
 class BroadcastTransactionFlowTest {
 
@@ -95,7 +89,7 @@ class BroadcastTransactionFlowTest {
   @Test
   fun `Transaction is broadcast to parties not involved in original transaction`() {
     val future = partyA.startFlow(
-      SendMessageFlow(
+      CreateStates(
         MessageState(
           contents = "hi",
           recipient = partyB.info.singleIdentity(),
@@ -132,7 +126,7 @@ class BroadcastTransactionFlowTest {
   @Test
   fun `Broadcasted transaction states cannot be spent in a transaction created by non participant parties`() {
     val future = partyA.startFlow(
-      SendMessageFlow(
+      CreateStates(
         MessageState(
           contents = "hi",
           recipient = partyB.info.singleIdentity(),
@@ -163,7 +157,7 @@ class BroadcastTransactionFlowTest {
   @Test
   fun `Broadcasted transaction states cannot be sent to parties not included in the original transaction`() {
     val future = partyA.startFlow(
-      SendMessageFlow(
+      CreateStates(
         MessageState(
           contents = "hi",
           recipient = partyB.info.singleIdentity(),
@@ -194,7 +188,7 @@ class BroadcastTransactionFlowTest {
   @Test
   fun `Broadcasted transaction - sender cannot be mimicked`() {
     val future = partyA.startFlow(
-      SendMessageFlow(
+      CreateStates(
         MessageState(
           contents = "hi",
           recipient = partyB.info.singleIdentity(),

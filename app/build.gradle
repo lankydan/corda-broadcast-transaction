@@ -54,7 +54,7 @@ dependencies {
 
 task runPartyAServer(type: JavaExec) {
   classpath = sourceSets.main.runtimeClasspath
-  main = 'net.corda.r3.tmp.exporter.ServerKt'
+  main = 'net.corda.r3.exporter.ServerKt'
   environment "server.host", "localhost"
   environment "server.port", "10011"
   environment "config.rpc.username", "user1"
@@ -65,7 +65,7 @@ task runPartyAServer(type: JavaExec) {
 
 task runPartyBServer(type: JavaExec) {
   classpath = sourceSets.main.runtimeClasspath
-  main = 'dev.lankydan.tutorial.server.ServerKt'
+  main = 'net.corda.r3.exporter.ServerKt'
   environment "server.host", "localhost"
   environment "server.port", "10013"
   environment "config.rpc.username", "user1"

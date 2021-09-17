@@ -61,7 +61,7 @@ class CreateStates(private val contents: String, private val recipient: String, 
   private fun transaction(recipientParty: Party): TransactionBuilder {
     val me = serviceHub.myInfo.legalIdentities.first()
     return TransactionBuilder(notary()).apply {
-      for (i in 0..numberOfStatesToCreate) {
+      for (i in 0 until numberOfStatesToCreate) {
         logger.info("Creating state with index - $i")
         addOutputState(
           MessageState(
